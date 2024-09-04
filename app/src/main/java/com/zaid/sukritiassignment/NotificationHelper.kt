@@ -6,10 +6,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.zaid.sukritiassignment.data.model.AudioFile
-import com.zaid.sukritiassignment.presentation.navigation.Screen
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,7 +38,8 @@ class NotificationHelper @Inject constructor(
         }
     }
 
-    fun getNotification(title: String, content: String): Notification {
+    private fun getNotification(title: String, content: String): Notification {
+
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(content)

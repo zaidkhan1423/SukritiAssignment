@@ -1,8 +1,7 @@
 package com.zaid.sukritiassignment.presentation.music_list_screen
 
 import android.media.MediaPlayer
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -19,12 +18,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,31 +34,36 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.zaid.sukritiassignment.R
 import com.zaid.sukritiassignment.data.model.AudioFile
-import com.zaid.sukritiassignment.data.repository.MusicRepositoryImpl
 import com.zaid.sukritiassignment.presentation.navigation.Screen
-import com.zaid.sukritiassignment.presentation.view_model.MusicViewModel
-import com.zaid.sukritiassignment.ui.theme.SukritiAssignmentTheme
+import com.zaid.sukritiassignment.presentation.view_model.MusicUiState
+import kotlinx.coroutines.flow.emptyFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MusicListScreen(navController: NavController, viewModel: MusicViewModel) {
+fun MusicListScreen(
+    navController: NavController,
+    uiState: MusicUiState,
+    onShowSnackBar: suspend (message: String, actionLabel: String?, duration: SnackbarDuration) -> Boolean,
+    onEvent: (MusicPlayerUiEvent) -> Unit,
+    mediaPlayer: MediaPlayer?
+) {
+
+    LaunchedEffect(uiState.snackBarMessage) {
+        if (uiState.snackBarMessage != null) {
+            onShowSnackBar(uiState.snackBarMessage, null, SnackbarDuration.Short)
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        val audioFiles by viewModel.audioFiles.collectAsStateWithLifecycle()
-        val isMusicPlaying by viewModel.isMusicPlaying.collectAsStateWithLifecycle()
-        val mediaPlayer by viewModel.mediaPlayer.collectAsState()
-        val playingAudioFile by viewModel.playingAudioFile.collectAsStateWithLifecycle()
 
         Column {
             TopAppBar(
@@ -75,12 +82,12 @@ fun MusicListScreen(navController: NavController, viewModel: MusicViewModel) {
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                items(audioFiles.size) { index ->
+                items(uiState.audioFiles.size) { index ->
                     MusicItem(
-                        audio = audioFiles[index],
+                        audio = uiState.audioFiles[index],
                         onClick = {
-                            viewModel.stopMusic()
-                            viewModel.playAudio(audioFiles[index])
+                            onEvent(MusicPlayerUiEvent.OnStopMusicClick)
+                            onEvent(MusicPlayerUiEvent.OnPlayAudioClick(uiState.audioFiles[index]))
                             navController.navigate(Screen.MusicPlayerScreen)
                         })
                 }
@@ -103,7 +110,7 @@ fun MusicListScreen(navController: NavController, viewModel: MusicViewModel) {
                         .fillMaxWidth(0.8f)
                 ) {
                     AsyncImage(
-                        model = playingAudioFile?.albumArtUri,
+                        model = uiState.playingAudioFile?.albumArtUri,
                         contentDescription = null,
                         modifier = Modifier
                             .clip(shape = RoundedCornerShape(10.dp))
@@ -114,7 +121,7 @@ fun MusicListScreen(navController: NavController, viewModel: MusicViewModel) {
                     Column(
                         modifier = Modifier
                     ) {
-                        playingAudioFile?.let {
+                        uiState.playingAudioFile?.let {
                             Text(
                                 text = it.name,
                                 color = MaterialTheme.colorScheme.onBackground,
@@ -122,8 +129,8 @@ fun MusicListScreen(navController: NavController, viewModel: MusicViewModel) {
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1
                             )
-                            val minutes = (playingAudioFile!!.duration / 1000) / 60
-                            val seconds = (playingAudioFile!!.duration / 1000) % 60
+                            val minutes = (uiState.playingAudioFile.duration / 1000) / 60
+                            val seconds = (uiState.playingAudioFile.duration / 1000) % 60
 
                             Text(
                                 text = "Duration: $minutes:${
@@ -136,15 +143,15 @@ fun MusicListScreen(navController: NavController, viewModel: MusicViewModel) {
                     }
                 }
                 Icon(
-                    if (isMusicPlaying) painterResource(id = R.drawable.ic_pause_btn) else painterResource(
+                    if (uiState.isMusicPlaying) painterResource(id = R.drawable.ic_pause_btn) else painterResource(
                         id = R.drawable.ic_play_btn
                     ), contentDescription = null,
                     modifier = Modifier
                         .clickable {
-                            if (isMusicPlaying) {
-                                viewModel.pauseMusic()
+                            if (uiState.isMusicPlaying) {
+                                onEvent(MusicPlayerUiEvent.OnPauseMusicClick)
                             } else {
-                                viewModel.startMusic()
+                                onEvent(MusicPlayerUiEvent.OnStartMusicClick)
                             }
                         }
                         .size(45.dp)

@@ -9,6 +9,11 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -32,15 +37,24 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+            val snackBarHostState = remember { SnackbarHostState() }
             SukritiAssignmentTheme {
                 val navHostController = rememberNavController()
-                val musicViewModel : MusicViewModel = hiltViewModel()
+                val musicViewModel: MusicViewModel = hiltViewModel()
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize(),snackbarHost = { SnackbarHost(hostState = snackBarHostState) }) { innerPadding ->
                     AppNavHost(
                         modifier = Modifier.padding(innerPadding),
                         navHostController = navHostController,
-                        musicViewModel = musicViewModel
+                        musicViewModel = musicViewModel,
+                        onShowSnackBar = { message, action, duration ->
+                            snackBarHostState.showSnackbar(
+                                message = message,
+                                actionLabel = action,
+                                duration = duration,
+                                withDismissAction = duration == SnackbarDuration.Indefinite
+                            ) == SnackbarResult.ActionPerformed
+                        }
                     )
                 }
             }

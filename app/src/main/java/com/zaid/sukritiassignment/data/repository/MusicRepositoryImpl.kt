@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.MediaStore
 import com.zaid.sukritiassignment.data.model.AudioFile
 import com.zaid.sukritiassignment.domain.repository.MusicRepository
+import com.zaid.sukritiassignment.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -15,14 +16,19 @@ class MusicRepositoryImpl @Inject constructor(
     private val mediaPlayer: MediaPlayer
 ) : MusicRepository {
 
-    override fun playAudio(audioFile: AudioFile): Flow<MediaPlayer> = flow {
-        mediaPlayer.reset()
-        mediaPlayer.setDataSource(context, audioFile.uri)
-        mediaPlayer.prepare()
-        emit(mediaPlayer)
+    override fun playAudio(audioFile: AudioFile): Resource<Flow<MediaPlayer>> = try {
+        val flow = flow {
+            mediaPlayer.reset()
+            mediaPlayer.setDataSource(context, audioFile.uri!!)
+            mediaPlayer.prepare()
+            emit(mediaPlayer)
+        }
+        Resource.Success(flow)
+    } catch (e: Exception) {
+        Resource.Error(e)
     }
 
-    override fun getAllAudioFiles(): List<AudioFile> {
+    override fun getAllAudioFiles(): Resource<List<AudioFile>> = try {
         val audioList = mutableListOf<AudioFile>()
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
@@ -58,10 +64,12 @@ class MusicRepositoryImpl @Inject constructor(
                     albumId.toString()
                 )
 
-                audioList.add(AudioFile(id, name, duration, contentUri,albumArtUri))
+                audioList.add(AudioFile(id, name, duration, contentUri, albumArtUri))
             }
         }
-        return audioList
+        Resource.Success(audioList)
+    } catch (e: Exception) {
+        Resource.Error(e)
     }
-
 }
+

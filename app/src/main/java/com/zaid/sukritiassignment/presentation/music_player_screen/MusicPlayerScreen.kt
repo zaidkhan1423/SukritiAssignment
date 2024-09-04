@@ -1,8 +1,6 @@
 package com.zaid.sukritiassignment.presentation.music_player_screen
 
 import android.media.MediaPlayer
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -30,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -37,39 +37,39 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.zaid.sukritiassignment.R
 import com.zaid.sukritiassignment.data.model.AudioFile
-import com.zaid.sukritiassignment.data.repository.MusicRepositoryImpl
-import com.zaid.sukritiassignment.presentation.view_model.MusicViewModel
-import com.zaid.sukritiassignment.ui.theme.SukritiAssignmentTheme
+import com.zaid.sukritiassignment.presentation.music_list_screen.MusicPlayerUiEvent
+import com.zaid.sukritiassignment.presentation.view_model.MusicUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MusicPlayerScreen(
     navController: NavController,
-    viewModel: MusicViewModel
+    uiState: MusicUiState,
+    onShowSnackBar: suspend (message: String, actionLabel: String?, duration: SnackbarDuration) -> Boolean,
+    onEvent: (MusicPlayerUiEvent) -> Unit,
+    mediaPlayer: MediaPlayer?
 ) {
-    val mediaPlayer by viewModel.mediaPlayer.collectAsStateWithLifecycle()
-    val playingAudioFile by viewModel.playingAudioFile.collectAsStateWithLifecycle()
-    val isMusicPlaying by viewModel.isMusicPlaying.collectAsStateWithLifecycle()
-    var seekPosition by rememberSaveable { mutableIntStateOf(0) }
+    var seekPosition by remember { mutableIntStateOf(0) }
+    var isUserSeeking by remember { mutableStateOf(false) }
 
-    LaunchedEffect(mediaPlayer) {
-        mediaPlayer?.let {
-            viewModel.updateSeekBarPosition().collect { position ->
-                seekPosition = position
-            }
+    LaunchedEffect(uiState) {
+        if (uiState.snackBarMessage != null) {
+            onShowSnackBar(uiState.snackBarMessage, null, SnackbarDuration.Short)
         }
     }
 
+    LaunchedEffect(mediaPlayer) {
+        mediaPlayer?.let {
+            onEvent(MusicPlayerUiEvent.OnUpdateSeekBarPosition)
+        }
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -78,7 +78,7 @@ fun MusicPlayerScreen(
         TopAppBar(
             title = {
                 Text(
-                    text = playingAudioFile?.name ?: "Unknown Song",
+                    text = uiState.playingAudioFile?.name ?: "Unknown Song",
                     fontSize = MaterialTheme.typography.titleMedium.fontSize,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -92,7 +92,7 @@ fun MusicPlayerScreen(
             colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
         )
         HorizontalDivider()
-        playingAudioFile?.let { audioFile ->
+        uiState.playingAudioFile?.let { audioFile ->
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -127,13 +127,15 @@ fun MusicPlayerScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Slider(
-                        value = seekPosition.toFloat(),
+                        value = if (isUserSeeking) seekPosition.toFloat() else uiState.playerSeekBarPosition.toFloat(),
                         onValueChange = { newPosition ->
                             seekPosition = newPosition.toInt()
+                            isUserSeeking = true
                         },
                         valueRange = 0f..(audioFile.duration.toFloat()),
                         onValueChangeFinished = {
-                            viewModel.seekTo(seekPosition)
+                            isUserSeeking = false
+                            onEvent(MusicPlayerUiEvent.OnSeekToClick(seekPosition))
                         }
                     )
                     Row(
@@ -143,7 +145,7 @@ fun MusicPlayerScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = formatTime(seekPosition),
+                            text = formatTime(mediaPlayer!!.currentPosition),
                             color = MaterialTheme.colorScheme.onBackground,
                             fontSize = MaterialTheme.typography.bodyMedium.fontSize
                         )
@@ -160,8 +162,8 @@ fun MusicPlayerScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         IconButton(onClick = {
-                            viewModel.stopMusic()
-                            viewModel.previousTrack()
+                            onEvent(MusicPlayerUiEvent.OnStopMusicClick)
+                            onEvent(MusicPlayerUiEvent.OnPreviousTrackClick)
                         }) {
                             Icon(
                                 painterResource(id = R.drawable.ic_skip_back),
@@ -170,8 +172,8 @@ fun MusicPlayerScreen(
                         }
                         IconButton(
                             onClick = {
-                                if (isMusicPlaying) viewModel.pauseMusic()
-                                else viewModel.startMusic()
+                                if (uiState.isMusicPlaying) onEvent(MusicPlayerUiEvent.OnPauseMusicClick)
+                                else onEvent(MusicPlayerUiEvent.OnStartMusicClick)
                             },
                             modifier = Modifier
                                 .size(60.dp)
@@ -181,15 +183,15 @@ fun MusicPlayerScreen(
                                 )
                         ) {
                             Icon(
-                                if (isMusicPlaying) painterResource(id = R.drawable.ic_pause_btn) else painterResource(
+                                if (uiState.isMusicPlaying) painterResource(id = R.drawable.ic_pause_btn) else painterResource(
                                     id = R.drawable.ic_play_btn
                                 ),
-                                contentDescription = if (isMusicPlaying) "Pause" else "Play"
+                                contentDescription = if (uiState.isMusicPlaying) "Pause" else "Play"
                             )
                         }
                         IconButton(onClick = {
-                            viewModel.stopMusic()
-                            viewModel.nextTrack()
+                            onEvent(MusicPlayerUiEvent.OnStopMusicClick)
+                            onEvent(MusicPlayerUiEvent.OnNextTrackClick)
                         }) {
                             Icon(
                                 painterResource(id = R.drawable.ic_skip_forward),
