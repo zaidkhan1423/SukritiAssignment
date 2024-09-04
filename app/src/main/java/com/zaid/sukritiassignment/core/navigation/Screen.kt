@@ -1,4 +1,4 @@
-package com.zaid.sukritiassignment.presentation.navigation
+package com.zaid.sukritiassignment.core.navigation
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

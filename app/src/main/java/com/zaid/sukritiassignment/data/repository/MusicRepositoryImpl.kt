@@ -6,7 +6,7 @@ import android.net.Uri
 import android.provider.MediaStore
 import com.zaid.sukritiassignment.data.model.AudioFile
 import com.zaid.sukritiassignment.domain.repository.MusicRepository
-import com.zaid.sukritiassignment.utils.Resource
+import com.zaid.sukritiassignment.core.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject

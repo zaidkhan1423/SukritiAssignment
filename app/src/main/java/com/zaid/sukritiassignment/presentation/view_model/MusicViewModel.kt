@@ -2,14 +2,14 @@ package com.zaid.sukritiassignment.presentation.view_model
 
 import android.media.MediaPlayer
 import android.util.Log
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.zaid.sukritiassignment.NotificationHelper
+import com.zaid.sukritiassignment.core.NotificationHelper
 import com.zaid.sukritiassignment.data.model.AudioFile
 import com.zaid.sukritiassignment.domain.repository.MusicRepository
-import com.zaid.sukritiassignment.presentation.music_list_screen.MusicPlayerUiEvent
-import com.zaid.sukritiassignment.utils.Resource
+import com.zaid.sukritiassignment.core.utils.Resource
+import com.zaid.sukritiassignment.presentation.MusicPlayerUiEvent
+import com.zaid.sukritiassignment.presentation.MusicUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

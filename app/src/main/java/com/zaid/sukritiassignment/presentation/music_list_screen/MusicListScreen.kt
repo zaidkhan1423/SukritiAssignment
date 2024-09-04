@@ -1,7 +1,6 @@
 package com.zaid.sukritiassignment.presentation.music_list_screen
 
 import android.media.MediaPlayer
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -24,9 +23,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,14 +30,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.zaid.sukritiassignment.R
+import com.zaid.sukritiassignment.core.navigation.Screen
 import com.zaid.sukritiassignment.data.model.AudioFile
-import com.zaid.sukritiassignment.presentation.navigation.Screen
-import com.zaid.sukritiassignment.presentation.view_model.MusicUiState
-import kotlinx.coroutines.flow.emptyFlow
+import com.zaid.sukritiassignment.presentation.MusicPlayerUiEvent
+import com.zaid.sukritiassignment.presentation.MusicUiState
+import com.zaid.sukritiassignment.ui.theme.SukritiAssignmentTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -206,17 +204,16 @@ fun MusicItem(audio: AudioFile, onClick: (AudioFile) -> Unit) {
     HorizontalDivider()
 }
 
-//@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-//@Preview(showBackground = true)
-//@Composable
-//fun MusicListScreenPreview() {
-//    SukritiAssignmentTheme {
-//        MusicListScreen(
-//            navController = NavController(LocalContext.current), viewModel = MusicViewModel(
-//                MusicRepositoryImpl(
-//                    context = LocalContext.current, mediaPlayer = MediaPlayer(LocalContext.current)
-//                )
-//            )
-//        )
-//    }
-//}
+@Preview(showBackground = true)
+@Composable
+fun MusicListScreenPreview() {
+    SukritiAssignmentTheme {
+        MusicListScreen(
+            navController = NavController(LocalContext.current),
+            onShowSnackBar = { _, _, _ -> false },
+            onEvent = {},
+            mediaPlayer = null,
+            uiState = MusicUiState()
+        )
+    }
+}

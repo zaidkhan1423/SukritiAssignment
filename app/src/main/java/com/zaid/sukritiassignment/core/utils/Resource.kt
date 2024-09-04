@@ -1,4 +1,4 @@
-package com.zaid.sukritiassignment.utils
+package com.zaid.sukritiassignment.core.utils
 
 sealed class Resource<out T> {
     data class Success<out T>(val data: T): Resource<T>()

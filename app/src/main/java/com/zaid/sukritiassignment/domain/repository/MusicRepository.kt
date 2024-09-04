@@ -2,7 +2,7 @@ package com.zaid.sukritiassignment.domain.repository
 
 import android.media.MediaPlayer
 import com.zaid.sukritiassignment.data.model.AudioFile
-import com.zaid.sukritiassignment.utils.Resource
+import com.zaid.sukritiassignment.core.utils.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface MusicRepository {

@@ -19,7 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
-import com.zaid.sukritiassignment.presentation.navigation.AppNavHost
+import com.zaid.sukritiassignment.core.navigation.AppNavHost
 import com.zaid.sukritiassignment.presentation.view_model.MusicViewModel
 import com.zaid.sukritiassignment.ui.theme.SukritiAssignmentTheme
 import dagger.hilt.android.AndroidEntryPoint

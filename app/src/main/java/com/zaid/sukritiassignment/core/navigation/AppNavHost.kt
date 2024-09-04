@@ -1,4 +1,4 @@
-package com.zaid.sukritiassignment.presentation.navigation
+package com.zaid.sukritiassignment.core.navigation
 
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable

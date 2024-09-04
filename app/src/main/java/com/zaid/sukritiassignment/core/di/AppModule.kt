@@ -1,8 +1,7 @@
-package com.zaid.sukritiassignment.di
+package com.zaid.sukritiassignment.core.di
 
 import android.content.Context
-import android.media.MediaPlayer
-import com.zaid.sukritiassignment.NotificationHelper
+import com.zaid.sukritiassignment.core.NotificationHelper
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

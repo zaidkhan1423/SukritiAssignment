@@ -1,6 +1,5 @@
-package com.zaid.sukritiassignment.presentation.view_model
+package com.zaid.sukritiassignment.presentation
 
-import android.media.MediaPlayer
 import com.zaid.sukritiassignment.data.model.AudioFile
 
 data class MusicUiState(
