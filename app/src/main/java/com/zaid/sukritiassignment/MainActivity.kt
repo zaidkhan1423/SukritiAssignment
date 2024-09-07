@@ -23,9 +23,14 @@ import com.zaid.sukritiassignment.core.navigation.AppNavHost
 import com.zaid.sukritiassignment.presentation.view_model.MusicViewModel
 import com.zaid.sukritiassignment.ui.theme.SukritiAssignmentTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+//    @Inject
+//    lateinit var musicViewModel: MusicViewModel
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +64,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -74,11 +78,17 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-        private val PERMISSIONS = arrayOf(
-            android.Manifest.permission.READ_MEDIA_AUDIO,
-            android.Manifest.permission.POST_NOTIFICATIONS
-        )
+        private val PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(
+                android.Manifest.permission.READ_MEDIA_AUDIO,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            )
+        } else {
+            arrayOf(
+                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                 android.Manifest.permission.POST_NOTIFICATIONS
+            )
+        }
     }
+
 }
-
-

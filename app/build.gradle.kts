@@ -84,6 +84,9 @@ dependencies {
     //Coil
     implementation (libs.coil.compose)
 
+    //Androidx Media(For Media Notification)
+    implementation( libs.androidx.media)
+
 }
 kapt {
     correctErrorTypes = true

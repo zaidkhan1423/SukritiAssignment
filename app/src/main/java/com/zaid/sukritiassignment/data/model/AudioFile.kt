@@ -10,5 +10,5 @@ data class AudioFile(
     val name: String = "",
     val duration: Long,
     val uri: Uri?,
-    val albumArtUri: Uri? = null
+    val albumArtUri: Uri?
 ) : Parcelable

@@ -1,5 +1,7 @@
 package com.zaid.sukritiassignment.core.navigation
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -8,10 +10,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.zaid.sukritiassignment.presentation.music_player_screen.MusicPlayerScreen
-import com.zaid.sukritiassignment.presentation.music_list_screen.MusicListScreen
+import com.zaid.sukritiassignment.presentation.music_screens.MusicPlayerScreen
+import com.zaid.sukritiassignment.presentation.music_screens.MusicListScreen
 import com.zaid.sukritiassignment.presentation.view_model.MusicViewModel
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
@@ -22,15 +25,35 @@ fun AppNavHost(
     val uiState by musicViewModel.musicUiState.collectAsStateWithLifecycle()
     val mediaPlayer by musicViewModel.mediaPlayer.collectAsStateWithLifecycle()
 
-    NavHost(navController = navHostController, startDestination = Screen.MusicListScreen) {
+    SharedTransitionLayout {
+        NavHost(navController = navHostController, startDestination = Screen.MusicListScreen) {
 
-        composable<Screen.MusicListScreen> {
+            composable<Screen.MusicListScreen> {
 
-            MusicListScreen(navController = navHostController, uiState = uiState, onShowSnackBar = onShowSnackBar,onEvent = musicViewModel::onEvent,mediaPlayer = mediaPlayer)
-        }
-        composable<Screen.MusicPlayerScreen> {
+                MusicListScreen(
+                    navController = navHostController,
+                    uiState = uiState,
+                    onShowSnackBar = onShowSnackBar,
+                    onEvent = musicViewModel::onEvent,
+                    mediaPlayer = mediaPlayer,
+                    animatedVisibilityScope = this
+                )
 
-            MusicPlayerScreen(navController = navHostController, uiState = uiState,onShowSnackBar = onShowSnackBar,onEvent = musicViewModel::onEvent,mediaPlayer = mediaPlayer)
+
+            }
+            composable<Screen.MusicPlayerScreen> {
+
+                MusicPlayerScreen(
+                    navController = navHostController,
+                    uiState = uiState,
+                    onShowSnackBar = onShowSnackBar,
+                    onEvent = musicViewModel::onEvent,
+                    mediaPlayer = mediaPlayer,
+                    animatedVisibilityScope = this
+                )
+            }
+
+
         }
     }
 }

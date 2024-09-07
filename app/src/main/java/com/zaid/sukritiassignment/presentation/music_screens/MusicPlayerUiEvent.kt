@@ -1,4 +1,4 @@
-package com.zaid.sukritiassignment.presentation
+package com.zaid.sukritiassignment.presentation.music_screens
 
 import com.zaid.sukritiassignment.data.model.AudioFile
 

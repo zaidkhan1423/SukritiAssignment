@@ -5,11 +5,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zaid.sukritiassignment.core.NotificationHelper
+import com.zaid.sukritiassignment.core.utils.Resource
 import com.zaid.sukritiassignment.data.model.AudioFile
 import com.zaid.sukritiassignment.domain.repository.MusicRepository
-import com.zaid.sukritiassignment.core.utils.Resource
-import com.zaid.sukritiassignment.presentation.MusicPlayerUiEvent
-import com.zaid.sukritiassignment.presentation.MusicUiState
+import com.zaid.sukritiassignment.presentation.music_screens.MusicPlayerUiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -31,6 +30,7 @@ class MusicViewModel @Inject constructor(
     val mediaPlayer = _mediaPlayer.asStateFlow()
 
     init {
+        notificationHelper.hideNotification()
         fetchAudioFiles()
     }
 
@@ -77,19 +77,24 @@ class MusicViewModel @Inject constructor(
                     result.data.collect { player ->
                         _mediaPlayer.value = player
                         player.start()
-                        player.isLooping = true
                         _musicUiState.update { uiState ->
                             uiState.copy(
                                 loading = false, snackBarMessage = null, isMusicPlaying = true
                             )
                         }
+                        player.setOnCompletionListener {
+                            nextTrack()
+                        }
+                        notificationHelper.showNotification(
+                            audioFile.name,
+                            "Playing Music",
+                            musicUiState.value.isMusicPlaying
+                        )
                     }
-                    notificationHelper.showNotification(audioFile.name, "Playing Music")
                 }
             }
         }
     }
-
 
     private fun updateSeekBarPosition() {
         viewModelScope.launch(Dispatchers.Main) {
@@ -109,7 +114,7 @@ class MusicViewModel @Inject constructor(
     }
 
     private fun fetchAudioFiles() {
-        viewModelScope.launch(Dispatchers.IO) {
+        val job = viewModelScope.launch(Dispatchers.IO) {
             while (musicUiState.value.audioFiles.isEmpty()) {
                 when (val result = musicRepository.getAllAudioFiles()) {
                     is Resource.Error -> {
@@ -118,11 +123,11 @@ class MusicViewModel @Inject constructor(
                                 loading = false, snackBarMessage = result.exception.message
                             )
                         }
-                        Log.e("MusicVM", "Error")
+                        Log.e("MusicVM", "fetchAudioFiles Error -> ${result.exception.message}")
                     }
 
                     is Resource.Loading -> {
-                        Log.e("MusicVM", "Loading")
+                        Log.e("MusicVM", "fetchAudioFiles Loading -> Loading.")
                         _musicUiState.update { uiState ->
                             uiState.copy(
                                 loading = true, snackBarMessage = null
@@ -135,18 +140,26 @@ class MusicViewModel @Inject constructor(
                         _musicUiState.update { uiState ->
                             uiState.copy(
                                 loading = false,
-                                snackBarMessage = "Data Fetch",
+                                snackBarMessage = null,
                                 audioFiles = result.data
                             )
                         }
-                        Log.e("MusicVM", "Success")
+                        Log.e("MusicVM", "Success -> ${result.data}")
                     }
                 }
             }
         }
+
+        viewModelScope.launch {
+            job.start()
+            delay(15000)
+            job.cancel()
+        }
+
     }
 
     private fun stopMusic() {
+
         viewModelScope.launch {
             if (_mediaPlayer.value != null) {
                 _mediaPlayer.value!!.stop()
@@ -160,6 +173,12 @@ class MusicViewModel @Inject constructor(
                 isMusicPlaying = true
             )
         }
+
+        notificationHelper.showNotification(
+            musicUiState.value.playingAudioFile!!.name,
+            "Playing Music",
+            musicUiState.value.isMusicPlaying
+        )
         viewModelScope.launch {
             if (_mediaPlayer.value != null) {
                 _mediaPlayer.value!!.start()
@@ -173,6 +192,11 @@ class MusicViewModel @Inject constructor(
                 isMusicPlaying = false
             )
         }
+        notificationHelper.showNotification(
+            musicUiState.value.playingAudioFile!!.name,
+            "Playing Music",
+            musicUiState.value.isMusicPlaying
+        )
         viewModelScope.launch {
             if (_mediaPlayer.value != null) {
                 _mediaPlayer.value!!.pause()
