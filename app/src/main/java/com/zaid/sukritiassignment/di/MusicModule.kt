@@ -15,7 +15,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object MusicModule {
 
-
     @Provides
     @Singleton
     fun provideMediaPlayer(): MediaPlayer {

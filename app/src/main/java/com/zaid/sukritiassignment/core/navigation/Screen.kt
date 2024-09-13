@@ -1,18 +1,17 @@
 package com.zaid.sukritiassignment.core.navigation
 
 import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
-@Parcelize
+//@Parcelize
 @Serializable
-sealed class Screen : Parcelable {
+sealed class Screen {
 
-    @Parcelize
+//    @Parcelize
     @Serializable
     data object MusicListScreen: Screen()
 
-    @Parcelize
+//    @Parcelize
     @Serializable
     data object MusicPlayerScreen: Screen()
 
